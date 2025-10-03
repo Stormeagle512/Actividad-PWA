@@ -1,42 +1,140 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+body {
+  margin: 0;
+  font-family: 'Segoe UI', 'Roboto', sans-serif;
+  background: linear-gradient(180deg, #fff8f0, #ffe4c4);
+  color: #1E1E1E;
+}
+
+.app-header {
+  background: #E63946; 
+  color: #fff;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  font-weight: bold;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.25);
+}
+
+.logo-image {
+  height: 50px;
+  margin-right: 1rem;
+  border-radius: 50%;
+  background: #fff;
+  padding: 0.2rem;
+}
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  position: absolute;
+  right: 1rem;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  background-color: #22c55e; 
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+/* --- Contenido Principal --- */
+.main-content {
+  padding: 2rem 1.5rem;
+}
+
+.welcome-section {
   text-align: center;
+  margin-bottom: 2rem;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.welcome-section h2 {
+  font-size: 2.2rem;
+  color: #E63946;
+  margin-bottom: 0.5rem;
+  font-family: 'Comic Sans MS', cursive, sans-serif; /* divertido */
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.welcome-section p {
+  color: #4B5563;
+  font-size: 1.1rem;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* --- Tarjetas de Características --- */
+.features-grid {
+  display: grid;
+  gap: 1.5rem;
+  width: 100%;       /* ocupa todo el ancho */
+  margin: 0;         /* quita centrado */
+  grid-template-columns: 1fr; /* por defecto 1 columna */
 }
+
 
 .card {
-  padding: 2em;
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+  text-align: center;
+  border: 2px solid #FBBF24; /* borde mostaza */
+  transition: transform 0.2s;
 }
 
-.read-the-docs {
-  color: #888;
+.card:hover {
+  transform: scale(1.03);
+}
+
+.card-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.card h3 {
+  font-size: 1.4rem;
+  color: #E63946;
+  margin-bottom: 0.5rem;
+}
+
+.card p {
+  color: #374151;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+
+/* --- Botón de Instalar --- */
+.install-button {
+  background-color: #FBBF24; /* amarillo queso */
+  color: #1E1E1E;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.install-button:hover {
+  background-color: #facc15;
+}
+
+/* --- Responsividad --- */
+@media (min-width: 768px) {
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas en pantallas medianas */
+  }
+  
+  .features-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
