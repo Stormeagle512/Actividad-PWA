@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react'; // 👈 1. Importa los hooks necesarios
+import { useState, useEffect } from 'react'; 
 import './App.css';
 
-// 👈 2. Definimos el tipo para el evento de instalación para que TypeScript no de errores
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: Array<string>;
   readonly userChoice: Promise<{
