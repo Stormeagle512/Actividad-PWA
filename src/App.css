@@ -45,9 +45,8 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
-/* --- Contenido Principal --- */
 .main-content {
-  padding: 2rem 1.5rem;
+  padding: 2rem;
 }
 
 .welcome-section {
@@ -59,7 +58,7 @@ body {
   font-size: 2.2rem;
   color: #E63946;
   margin-bottom: 0.5rem;
-  font-family: 'Comic Sans MS', cursive, sans-serif; /* divertido */
+  font-family: 'Comic Sans MS', cursive, sans-serif; 
 }
 
 .welcome-section p {
@@ -67,13 +66,13 @@ body {
   font-size: 1.1rem;
 }
 
-/* --- Tarjetas de Características --- */
+
 .features-grid {
   display: grid;
   gap: 1.5rem;
-  width: 100%;       /* ocupa todo el ancho */
-  margin: 0;         /* quita centrado */
-  grid-template-columns: 1fr; /* por defecto 1 columna */
+  width: 100%;       
+  margin: 0;         
+  grid-template-columns: 1fr; 
 }
 
 
@@ -83,7 +82,7 @@ body {
   padding: 1.5rem;
   box-shadow: 0 6px 10px rgba(0,0,0,0.15);
   text-align: center;
-  border: 2px solid #FBBF24; /* borde mostaza */
+  border: 2px solid #FBBF24; 
   transition: transform 0.2s;
 }
 
@@ -108,9 +107,8 @@ body {
   margin-bottom: 1.5rem;
 }
 
-/* --- Botón de Instalar --- */
 .install-button {
-  background-color: #FBBF24; /* amarillo queso */
+  background-color: #FBBF24;
   color: #1E1E1E;
   border: none;
   border-radius: 8px;
@@ -128,10 +126,10 @@ body {
   background-color: #facc15;
 }
 
-/* --- Responsividad --- */
-@media (min-width: 768px) {
+
+@media (min-width: 850px) {
   .features-grid {
-    grid-template-columns: repeat(2, 1fr); /* 2 columnas en pantallas medianas */
+    grid-template-columns: repeat(2, 1fr); 
   }
   
   .features-grid {
