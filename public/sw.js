@@ -165,6 +165,7 @@ self.addEventListener('push', (event) => {
     tag: payload.tag || 'push-tag',
     data: payload.data || {}
   };
+  
 
   event.waitUntil(self.registration.showNotification(payload.title, options));
 });
@@ -179,5 +180,24 @@ self.addEventListener('notificationclick', (event) => {
       if (clients.openWindow) return clients.openWindow('/');
     })
   );
+  
+  self.addEventListener('message', (event) => {
+  const data = event.data || {};
+  if (data && data.type === 'simulate-push') {
+    const title = data.title || '🔔 Notificación PWA';
+    const body = data.body || 'Esta es una notificación simulada de tu PWA.';
+
+    event.waitUntil(
+      self.registration.showNotification(title, {
+        body,
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/icon-192x192.png',
+        vibrate: [200, 100, 200],
+        tag: 'simulated-push',
+      })
+    );
+  }
+});
+  
 });
 

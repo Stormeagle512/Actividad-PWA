@@ -11,7 +11,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 type Entry = {
-  id?: number; 
+  id?: number;
   title: string;
   description: string;
   createdAt: number;
@@ -27,7 +27,7 @@ function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = (e) => {
-      const db = (e.target as IDBOpenDBRequest).result;
+      const db = (e.target as any).result as IDBDatabase;
       if (!db.objectStoreNames.contains(OUTBOX_STORE)) {
         db.createObjectStore(OUTBOX_STORE, { keyPath: 'id', autoIncrement: true });
       }
@@ -46,9 +46,7 @@ async function addToStore(storeName: string, value: any): Promise<number | undef
     const tx = db.transaction(storeName, 'readwrite');
     const store = tx.objectStore(storeName);
     const req = store.add(value);
-    req.onsuccess = () => {
-      resolve(req.result as number);
-    };
+    req.onsuccess = () => resolve(req.result as number);
     req.onerror = () => reject(req.error);
   });
 }
@@ -75,21 +73,64 @@ async function clearStore(storeName: string): Promise<void> {
   });
 }
 
-function App() {
+async function requestNotificationPermission() {
+  if ('Notification' in window) {
+    const permission = await Notification.requestPermission();
+    console.log('🔔 Permiso de notificaciones:', permission);
+  }
+}
+
+async function showNotification(title: string, body: string) {
+  if (!('Notification' in window)) return;
+  if (Notification.permission !== 'granted') {
+    console.log('⚠️ No hay permiso para notificaciones');
+    return;
+  }
+
+  const reg = await navigator.serviceWorker.ready;
+  reg.showNotification(
+    title,
+    {
+      body,
+      icon: '/icons/icon-192x192.png',
+      badge: '/icons/icon-96x96.png',
+      vibrate: [200, 100, 200],
+    } as NotificationOptions & { vibrate?: number[] }
+  );
+}
+
+function App(): React.ReactElement {
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
-
   const [online, setOnline] = useState<boolean>(navigator.onLine);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [entries, setEntries] = useState<Entry[]>([]);
 
   useEffect(() => {
+    requestNotificationPermission();
+
     const handleBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
       console.log('✅ Evento beforeinstallprompt capturado');
       setInstallPrompt(event as BeforeInstallPromptEvent);
       setIsInstallable(true);
+      
+
+      const simulatePushBtn = document.getElementById('simulatePush');
+simulatePushBtn?.addEventListener('click', async () => {
+  const reg = await navigator.serviceWorker.ready;
+  if (Notification.permission !== 'granted') {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      alert('Permiso de notificaciones denegado.');
+      return;
+    }
+  }
+  reg.active?.postMessage({
+    type: 'simulate',
+  });
+});
     };
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
@@ -103,10 +144,11 @@ function App() {
       if (data?.type === 'sync-complete') {
         const count = data.count ?? 0;
         loadEntries();
-        alert(`Sincronización completada: ${count} ítem(s) sincronizado(s).`);
+        showNotification('Sincronización completada', `${count} ítem(s) sincronizado(s).`);
       }
     };
     navigator.serviceWorker?.addEventListener?.('message', onSWMessage);
+
     loadEntries();
 
     return () => {
@@ -134,8 +176,8 @@ function App() {
       const outbox = await getAllFromStore<Entry>(OUTBOX_STORE);
       const sent = await getAllFromStore<Entry>(SENT_STORE);
       const combined = [
-        ...sent.map(e => ({ ...e, /* status 'sent' */ })),
-        ...outbox.map(e => ({ ...e /* pending */ }))
+        ...sent.map(e => ({ ...e })),
+        ...outbox.map(e => ({ ...e })),
       ].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       setEntries(combined);
     } catch (err) {
@@ -155,12 +197,13 @@ function App() {
         setTitle('');
         setDescription('');
         await loadEntries();
-        alert('Enviado (simulado) y guardado en sentEntries.');
+        showNotification('✅ Enviado', 'El registro se guardó correctamente.');
       } catch (err) {
         console.error('Error guardando sent:', err);
       }
       return;
     }
+
     try {
       await addToStore(OUTBOX_STORE, entry);
       setTitle('');
@@ -170,35 +213,42 @@ function App() {
       if ('serviceWorker' in navigator && 'SyncManager' in window) {
         try {
           const reg = await navigator.serviceWorker.ready;
-          await (reg as ServiceWorkerRegistration & { sync?: any }).sync.register('sync-entries');
+          await (reg as any).sync.register('sync-entries');
         } catch (err) {
           console.warn('No se pudo registrar sync:', err);
         }
-      } else {
-        console.log('SyncManager no disponible; quedará en outbox hasta reconectar.');
       }
-      alert('Guardado localmente (offline). Se sincronizará cuando vuelvas a estar en línea.');
+      showNotification('📦 Guardado Offline', 'El registro se sincronizará cuando haya conexión.');
     } catch (err) {
       console.error('Error guardando outbox:', err);
     }
   }
 
   async function handleClearDb() {
-    if (!confirm('¿Limpiar IndexedDB? Esto eliminará outbox y sentEntries.')) return;
+    if (!confirm('¿Limpiar IndexedDB? Esto eliminará los registros')) return;
     try {
       await clearStore(OUTBOX_STORE);
       await clearStore(SENT_STORE);
       await loadEntries();
-      alert('IndexedDB limpiada.');
+      showNotification('🧹 Base de datos limpiada', 'Todos los registros fueron eliminados.');
     } catch (err) {
       console.error('Error limpiando DB:', err);
     }
   }
 
+  useEffect(() => {
+    const simulateBtn = document.getElementById('simulatePush');
+    if (simulateBtn) {
+      simulateBtn.addEventListener('click', () =>
+        showNotification('🔔 Notificación de prueba', 'Esta es una notificación push simulada.')
+      );
+    }
+  }, []);
+
   return (
     <div className="app-container">
       <header className="app-header">
-        <img src="/icons/icon-192.png" alt="Logo de la Aplicación" className="logo-image" />
+        <img src="/icons/icon-512x512.png" alt="Logo de la Aplicación" className="logo-image" />
       </header>
 
       <main className="main-content">
@@ -267,6 +317,9 @@ function App() {
               </button>
               <button type="button" onClick={handleClearDb} style={{ padding: '8px 12px' }}>
                 Limpiar DB
+              </button>
+              <button type="button" id="simulatePush" style={{ padding: '8px 12px' }}>
+                Simular Notificacion
               </button>
             </div>
           </form>
