@@ -66,4 +66,63 @@ export default defineConfig([
     },
   },
 ])
+
 ```
+## 🧩 Arquitectura de la PWA
+
+### App Shell
+El App Shell contiene la estructura básica de la interfaz (`index.html`, `manifest.json`, `icons/`) y se almacena en caché para garantizar una carga instantánea y soporte offline.
+
+### Service Worker
+Ubicado en la raíz del proyecto, administra el ciclo de vida de la PWA:
+
+- **`install`** → Precachea los archivos esenciales.  
+- **`activate`** → Limpia versiones antiguas del caché.  
+- **`fetch`** → Intercepta las peticiones para aplicar las estrategias de caché.
+
+---
+
+## 🧠 Estrategias de caché adoptadas
+
+| Tipo de recurso | Estrategia | Descripción |
+|------------------|-------------|--------------|
+| App Shell (`index.html`, `manifest.json`, íconos) | **Cache First** | Carga instantánea y modo offline. |
+| Estilos y scripts (`.css`, `.js`) | **Cache with Network Fallback** | Usa caché si está disponible; actualiza desde la red si hay una nueva versión. |
+| Datos dinámicos (API REST) | **Network First** | Prioriza información actualizada y recurre a caché/IndexedDB en modo offline. |
+| Íconos e imágenes | **Cache First con versionado** | Menor uso de red y carga rápida. |
+
+**Justificación:**  
+Estas estrategias se seleccionaron para equilibrar **rendimiento, disponibilidad y frescura de los datos**, garantizando una experiencia estable incluso sin conexión.
+
+---
+
+## 🧾 Estructura básica del Service Worker
+
+```js
+const CACHE_NAME = "pwa-cache-v1";
+const ASSETS = [
+  "/",
+  "/index.html",
+  "/manifest.json",
+  "/icons/icon-192x192.png",
+  "/icons/icon-512x512.png"
+];
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)));
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+    )
+  );
+});
+
+self.addEventListener("fetch", (event) => {
+  event.respondWith(
+    caches.match(event.request).then((cached) => cached || fetch(event.request))
+  );
+})
+
